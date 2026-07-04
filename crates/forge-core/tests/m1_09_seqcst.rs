@@ -13,9 +13,6 @@ fn seqcst_forbids_both_seeing_zero() {
     for _ in 0..20_000 {
         let (a_saw_b, b_saw_a) = dekker_store_load(Ordering::SeqCst);
         // SeqCst：至少一个线程看到了对方的 1。
-        assert!(
-            a_saw_b || b_saw_a,
-            "SeqCst 下不应两个线程都看到对方为 0"
-        );
+        assert!(a_saw_b || b_saw_a, "SeqCst 下不应两个线程都看到对方为 0");
     }
 }

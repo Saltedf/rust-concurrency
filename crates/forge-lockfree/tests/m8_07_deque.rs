@@ -55,6 +55,11 @@ fn deque_no_loss_no_duplication() {
     let mut v = collected.lock().unwrap().clone();
     v.sort_unstable();
     v.dedup();
-    assert_eq!(v.len() as u32, N, "应有 {N} 个不重复值，实际 {}", collected.lock().unwrap().len());
+    assert_eq!(
+        v.len() as u32,
+        N,
+        "应有 {N} 个不重复值，实际 {}",
+        collected.lock().unwrap().len()
+    );
     assert_eq!(v, (0..N).collect::<Vec<_>>());
 }

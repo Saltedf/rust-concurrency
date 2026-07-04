@@ -3,10 +3,10 @@
 use forge_core::cancel::CancellationToken;
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
+use std::sync::Arc;
 use std::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
 /// 一个"什么也不干"的 Waker——本测试里我们手动 poll，不需要真唤醒。
@@ -73,10 +73,7 @@ fn token_cooperative_loop_exits() {
     worker.join().unwrap();
     // 取消后 iter 不再增长（或最多多一次）
     let count_after = iter.load(Ordering::Relaxed);
-    assert!(
-        count_after <= count_before + 1,
-        "取消后 worker 应尽快退出"
-    );
+    assert!(count_after <= count_before + 1, "取消后 worker 应尽快退出");
 }
 
 #[test]

@@ -102,7 +102,9 @@ impl<T> Deque<T> {
     }
 
     pub fn stealer(&self) -> Stealer<T> {
-        Stealer { deque: self as *const _ }
+        Stealer {
+            deque: self as *const _,
+        }
     }
 
     fn steal_inner(&self) -> Steal<T> {

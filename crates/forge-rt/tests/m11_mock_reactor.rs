@@ -31,13 +31,19 @@ pub struct MockReactor {
 
 impl MockReactor {
     pub fn new() -> Self {
-        Self { timers: Mutex::new(BTreeMap::new()) }
+        Self {
+            timers: Mutex::new(BTreeMap::new()),
+        }
     }
 
     /// 注册一个"到 deadline_ms 时叫醒我"的 waker。
     pub fn register(&self, deadline_ms: u64, waker: Waker) {
-        self.timers.lock().unwrap()
-            .entry(deadline_ms).or_default().push(waker);
+        self.timers
+            .lock()
+            .unwrap()
+            .entry(deadline_ms)
+            .or_default()
+            .push(waker);
     }
 
     /// 测试代码手动触发"所有 deadline_ms <= t 的 waker"。
@@ -84,9 +90,15 @@ pub struct MrDelay {
 
 impl MrDelay {
     pub fn new(reactor: Arc<MockReactor>, deadline_ms: u64) -> Self {
-        Self { deadline_ms, reactor, registered: false }
+        Self {
+            deadline_ms,
+            reactor,
+            registered: false,
+        }
     }
-    pub fn deadline_ms(&self) -> u64 { self.deadline_ms }
+    pub fn deadline_ms(&self) -> u64 {
+        self.deadline_ms
+    }
 }
 
 impl Future for MrDelay {
@@ -131,12 +143,18 @@ pub struct MockReactorV2 {
 
 impl MockReactorV2 {
     pub fn new() -> Self {
-        Self { timers: Mutex::new(BTreeMap::new()) }
+        Self {
+            timers: Mutex::new(BTreeMap::new()),
+        }
     }
 
     pub fn register(&self, deadline_ms: u64, waker: Waker, flag: Arc<AtomicUsize>) {
-        self.timers.lock().unwrap()
-            .entry(deadline_ms).or_default().push((waker, flag));
+        self.timers
+            .lock()
+            .unwrap()
+            .entry(deadline_ms)
+            .or_default()
+            .push((waker, flag));
     }
 
     pub fn fire(&self, t: u64) -> usize {
@@ -169,7 +187,9 @@ impl MrDelayV2 {
             registered: false,
         }
     }
-    pub fn deadline_ms(&self) -> u64 { self.deadline_ms }
+    pub fn deadline_ms(&self) -> u64 {
+        self.deadline_ms
+    }
 }
 
 impl Future for MrDelayV2 {
@@ -181,7 +201,8 @@ impl Future for MrDelayV2 {
         }
         // 第一次 poll:注册 waker + flag。
         if !self.registered {
-            self.reactor.register(self.deadline_ms, cx.waker().clone(), self.fired.clone());
+            self.reactor
+                .register(self.deadline_ms, cx.waker().clone(), self.fired.clone());
             self.registered = true;
         }
         Poll::Pending
@@ -312,7 +333,12 @@ struct CounterFuture {
 
 impl CounterFuture {
     fn new(count: Arc<AtomicUsize>, target: usize) -> Self {
-        Self { count, own_polls: 0, target, consumed: false }
+        Self {
+            count,
+            own_polls: 0,
+            target,
+            consumed: false,
+        }
     }
 }
 
@@ -355,8 +381,11 @@ fn counter_future_not_double_consumed_under_extra_polls() {
     for _ in 0..3 {
         assert_eq!(poll_once(&mut f), Poll::Ready(5));
     }
-    assert_eq!(count.load(Ordering::Relaxed), 5,
-        "consumed 后的额外 poll 不应增加 count(违反幂等性)");
+    assert_eq!(
+        count.load(Ordering::Relaxed),
+        5,
+        "consumed 后的额外 poll 不应增加 count(违反幂等性)"
+    );
 }
 
 // =========================================================================
@@ -395,16 +424,23 @@ fn shared_counter_eventually_equals_ready_futures() {
         if all_consumed {
             break;
         }
-        assert!(round < max_rounds - 1, "防死循环:超过 {} 轮仍有 future 未 ready", max_rounds);
+        assert!(
+            round < max_rounds - 1,
+            "防死循环:超过 {} 轮仍有 future 未 ready",
+            max_rounds
+        );
     }
     assert!(all_consumed, "所有 future 都应当 consumed");
 
     // 不变量:count 恰好 = target × n_futures。
     // 如果某个 future 被错误地"重复计数",count 会 > 这个值。
     let final_count = count.load(Ordering::Relaxed);
-    assert_eq!(final_count, target * n_futures,
+    assert_eq!(
+        final_count,
+        target * n_futures,
         "任意 poll 序列下,count 最终应当 = target × n_futures,实际 = {}",
-        final_count);
+        final_count
+    );
 
     // 再多 poll 几轮,验证 count **不**继续增长(幂等性)。
     for _ in 0..5 {
@@ -412,6 +448,9 @@ fn shared_counter_eventually_equals_ready_futures() {
             let _ = poll_once(f);
         }
     }
-    assert_eq!(count.load(Ordering::Relaxed), target * n_futures,
-        "全部 consumed 后再 poll,count 不应增长");
+    assert_eq!(
+        count.load(Ordering::Relaxed),
+        target * n_futures,
+        "全部 consumed 后再 poll,count 不应增长"
+    );
 }

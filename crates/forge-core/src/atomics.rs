@@ -13,9 +13,7 @@
 //! > 一句话锚点：原子是"两个线程能同时读写、却绝不会看到半截值"的整数/布尔/指针；
 //! > 内存序是"配合同一条原子操作、额外强加的排序契约"。二者组合，构成所有并发原语的砖块。
 
-use std::sync::atomic::{
-    AtomicBool, AtomicPtr, AtomicU64, AtomicUsize, Ordering,
-};
+use std::sync::atomic::{AtomicBool, AtomicPtr, AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -174,12 +172,10 @@ impl OnceFlag {
             return None;
         }
         // 抢"第一名"。CAS 的全局修改顺序保证只有一个线程的 exchange 成功。
-        match self.done.compare_exchange(
-            false,
-            true,
-            Ordering::Relaxed,
-            Ordering::Relaxed,
-        ) {
+        match self
+            .done
+            .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
+        {
             Ok(_) => Some(f()),
             Err(_) => None,
         }
@@ -313,12 +309,7 @@ pub fn cas_add(target: &AtomicU64, n: u64) -> u64 {
     let mut current = target.load(Ordering::Relaxed);
     loop {
         let new = current.wrapping_add(n);
-        match target.compare_exchange_weak(
-            current,
-            new,
-            Ordering::Relaxed,
-            Ordering::Relaxed,
-        ) {
+        match target.compare_exchange_weak(current, new, Ordering::Relaxed, Ordering::Relaxed) {
             // CAS 成功：`current` 就是旧值，新值是我们算出来的 `new`。
             Ok(_old) => return new,
             // 假失败或真失败：都把"当前真实值"拿回来，重算重试。

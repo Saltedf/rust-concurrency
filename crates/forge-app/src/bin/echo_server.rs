@@ -30,12 +30,8 @@ fn main() {
             std::process::exit(1);
         }
     };
-    println!(
-        "echo-server: 监听 127.0.0.1:{port}（epoll，edge-triggered，单线程）"
-    );
-    println!(
-        "用 `nc 127.0.0.1 {port}` 连上打字，服务器逐字节回显。Ctrl-C 退出。"
-    );
+    println!("echo-server: 监听 127.0.0.1:{port}（epoll，edge-triggered，单线程）");
+    println!("用 `nc 127.0.0.1 {port}` 连上打字，服务器逐字节回显。Ctrl-C 退出。");
 
     if let Err(e) = server.serve(64, None) {
         eprintln!("echo-server: 事件循环退出: {e}");

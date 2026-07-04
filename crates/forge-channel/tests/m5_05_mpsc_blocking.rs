@@ -18,7 +18,10 @@ fn recv_blocks_until_message_arrives() {
 
     // 给接收者一点时间确实进入阻塞
     thread::sleep(Duration::from_millis(50));
-    assert!(!blocked_then_received.load(Ordering::SeqCst), "此时还没 send，应仍在阻塞");
+    assert!(
+        !blocked_then_received.load(Ordering::SeqCst),
+        "此时还没 send，应仍在阻塞"
+    );
 
     tx.send("hi");
     h.join().unwrap();

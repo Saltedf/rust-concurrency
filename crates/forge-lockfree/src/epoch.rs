@@ -311,9 +311,7 @@ impl<T> EpochStack<T> {
                 unsafe { defer_destroy(old as *mut (), destroy_node::<T>) };
                 return Some(value);
             }
-            old = self
-                .head
-                .load(std::sync::atomic::Ordering::Acquire);
+            old = self.head.load(std::sync::atomic::Ordering::Acquire);
         }
     }
 }

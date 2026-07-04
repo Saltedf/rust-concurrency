@@ -1,9 +1,9 @@
 //! M8h Latch 测试：倒计数门闩。
 
 use forge_lockfree::latch::Latch;
-use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
+use std::sync::Arc;
 
 #[test]
 fn latch_zero_is_open() {

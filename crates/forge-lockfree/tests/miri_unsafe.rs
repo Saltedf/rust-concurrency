@@ -154,7 +154,11 @@ fn mcs_lock_contended_under_miri() {
         }
     });
 
-    assert_eq!(counter.load(Ordering::Relaxed), THREADS * ITERS, "MCS lock 丢失更新");
+    assert_eq!(
+        counter.load(Ordering::Relaxed),
+        THREADS * ITERS,
+        "MCS lock 丢失更新"
+    );
 }
 
 /// MCS lock 单线程：unlock 时 tail 已是 null 的 fast path。

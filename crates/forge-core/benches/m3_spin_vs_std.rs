@@ -20,9 +20,9 @@
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use forge_core::spin::SpinLock;
-use std::sync::Mutex;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Barrier;
+use std::sync::Mutex;
 use std::thread;
 
 /// 单线程下每个 bench iter 要做的 lock/unload 次数。

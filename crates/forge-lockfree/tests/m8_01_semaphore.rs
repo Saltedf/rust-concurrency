@@ -27,5 +27,8 @@ fn semaphore_limits_concurrency() {
             });
         }
     });
-    assert!(max_seen.load(Ordering::SeqCst) <= 2, "并发不应超过 2 个许可");
+    assert!(
+        max_seen.load(Ordering::SeqCst) <= 2,
+        "并发不应超过 2 个许可"
+    );
 }

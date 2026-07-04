@@ -26,7 +26,11 @@ fn release_acquire_publishes_data() {
         while !ready.load(Ordering::Acquire) {
             std::hint::spin_loop();
         }
-        assert_eq!(data.load(Ordering::Relaxed), 42, "Acquire 之后必须看到 Release 之前写的数据");
+        assert_eq!(
+            data.load(Ordering::Relaxed),
+            42,
+            "Acquire 之后必须看到 Release 之前写的数据"
+        );
         h.join().unwrap();
     }
 }

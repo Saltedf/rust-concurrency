@@ -43,13 +43,7 @@ fn par_map_preserves_order() {
 fn par_reduce_sum() {
     let pool = Arc::new(StealingPool::new(4));
     let input: Vec<i64> = (1..=10_000).collect();
-    let total = par_reduce(
-        &pool,
-        &input,
-        || 0i64,
-        |acc, x| acc + x,
-        |a, b| a + b,
-    );
+    let total = par_reduce(&pool, &input, || 0i64, |acc, x| acc + x, |a, b| a + b);
     // 1+2+...+10000 = 10000*10001/2 = 50005000
     assert_eq!(total, 5_000_5_000);
 }
@@ -57,7 +51,9 @@ fn par_reduce_sum() {
 #[test]
 fn par_reduce_max() {
     let pool = Arc::new(StealingPool::new(4));
-    let input: Vec<i64> = (0..10_000).map(|i| (i as i64).wrapping_mul(2654435761)).collect();
+    let input: Vec<i64> = (0..10_000)
+        .map(|i| (i as i64).wrapping_mul(2654435761))
+        .collect();
     let expected = input.iter().copied().max().unwrap();
     let got = par_reduce(
         &pool,
@@ -73,13 +69,7 @@ fn par_reduce_max() {
 fn par_reduce_empty() {
     let pool = Arc::new(StealingPool::new(2));
     let empty: Vec<i64> = vec![];
-    let got = par_reduce(
-        &pool,
-        &empty,
-        || 0i64,
-        |acc, x| acc + x,
-        |a, b| a + b,
-    );
+    let got = par_reduce(&pool, &empty, || 0i64, |acc, x| acc + x, |a, b| a + b);
     assert_eq!(got, 0);
 }
 

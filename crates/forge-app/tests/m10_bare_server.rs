@@ -28,7 +28,8 @@ fn spawn_server(max_events: usize) -> (Arc<BareEchoServer>, u16) {
 fn echo_round(port: u16, payload: &[u8]) -> Vec<u8> {
     let mut conn = TcpStream::connect(("127.0.0.1", port)).expect("connect");
     conn.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
-    conn.set_write_timeout(Some(Duration::from_secs(5))).unwrap();
+    conn.set_write_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
     conn.write_all(payload).expect("write");
     // 读回相同字节
     let mut got = Vec::with_capacity(payload.len());
@@ -63,12 +64,14 @@ fn multiple_sequential_messages_same_connection() {
     let (_server, port) = spawn_server(16);
     let mut conn = TcpStream::connect(("127.0.0.1", port)).expect("connect");
     conn.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
-    conn.set_write_timeout(Some(Duration::from_secs(5))).unwrap();
+    conn.set_write_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
 
     for &payload in &[b"a".as_slice(), b"bb", b"ccc"] {
         conn.write_all(payload).unwrap();
         let mut got = vec![0u8; payload.len()];
-        conn.read_exact(&mut got).unwrap_or_else(|e| panic!("read: {e}"));
+        conn.read_exact(&mut got)
+            .unwrap_or_else(|e| panic!("read: {e}"));
         assert_eq!(got, payload);
     }
 }

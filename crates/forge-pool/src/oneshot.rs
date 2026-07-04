@@ -24,7 +24,7 @@ use std::mem::MaybeUninit;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 
-use atomic_wait::{wake_one, wait};
+use atomic_wait::{wait, wake_one};
 
 const EMPTY: u32 = 0;
 const SENT: u32 = 1;
@@ -90,12 +90,11 @@ impl<T> Sender<T> {
             (*self.inner.slot.get()).write(message);
         }
         // Release：让上面 write 对将来的 Acquire 可见。
-        match self.inner.state.compare_exchange(
-            EMPTY,
-            SENT,
-            Ordering::Release,
-            Ordering::Relaxed,
-        ) {
+        match self
+            .inner
+            .state
+            .compare_exchange(EMPTY, SENT, Ordering::Release, Ordering::Relaxed)
+        {
             Ok(_) => {
                 // 成功发布。叫醒一个可能在 sleep 的 receiver。
                 wake_one(self.addr());

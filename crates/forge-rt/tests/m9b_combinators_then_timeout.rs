@@ -60,7 +60,9 @@ fn then_returns_after_first_completes_only() {
         }
     }
     let ready = Arc::new(AtomicBool::new(false));
-    let first = Manual { ready: ready.clone() };
+    let first = Manual {
+        ready: ready.clone(),
+    };
     let mut f = then(first, |v: u32| Ready::new(v + 1));
 
     // first 没 ready:then 应当 Pending。
@@ -71,12 +73,10 @@ fn then_returns_after_first_completes_only() {
     // 现在再 poll:应当切到 second 并完成。
     match poll_once(&mut f) {
         Poll::Ready(v) => assert_eq!(v, 43),
-        Poll::Pending => {
-            match poll_once(&mut f) {
-                Poll::Ready(v) => assert_eq!(v, 43),
-                Poll::Pending => panic!("then 应当最终 ready"),
-            }
-        }
+        Poll::Pending => match poll_once(&mut f) {
+            Poll::Ready(v) => assert_eq!(v, 43),
+            Poll::Pending => panic!("then 应当最终 ready"),
+        },
     }
 }
 
@@ -105,9 +105,7 @@ fn timeout_returns_elapsed_when_deadline_hits_first() {
     let inner = Delay::new(r2, Duration::from_millis(150));
     let start = Instant::now();
     let result = block_on(
-        async move {
-            timeout(inner, reactor, Duration::from_millis(50)).await
-        },
+        async move { timeout(inner, reactor, Duration::from_millis(50)).await },
         &Reactor::new().expect("reactor2"),
     );
     let elapsed = start.elapsed();

@@ -139,7 +139,10 @@ fn gen_panic_on_pending_without_yield() {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         gen.resume();
     }));
-    assert!(result.is_err(), "Gen 应当在 future 返回 Pending 但没 yield 时 panic");
+    assert!(
+        result.is_err(),
+        "Gen 应当在 future 返回 Pending 但没 yield 时 panic"
+    );
 }
 
 #[test]

@@ -3,7 +3,6 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-
 use forge_rt::{Reactor, Runtime};
 
 #[test]

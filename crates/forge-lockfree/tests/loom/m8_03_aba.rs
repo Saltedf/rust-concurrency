@@ -45,11 +45,17 @@ impl BuggyStack {
     }
 
     fn push(&self, value: usize) {
-        let node = Box::into_raw(Box::new(Node { value, next: ptr::null_mut() }));
+        let node = Box::into_raw(Box::new(Node {
+            value,
+            next: ptr::null_mut(),
+        }));
         let mut old = self.head.load(Ordering::Relaxed);
         loop {
             unsafe { (*node).next = old };
-            match self.head.compare_exchange_weak(old, node, Ordering::Relaxed, Ordering::Relaxed) {
+            match self
+                .head
+                .compare_exchange_weak(old, node, Ordering::Relaxed, Ordering::Relaxed)
+            {
                 Ok(_) => return,
                 Err(a) => old = a,
             }
@@ -96,11 +102,17 @@ impl SafeStack {
     }
 
     fn push(&self, value: usize) {
-        let node = Box::into_raw(Box::new(Node { value, next: ptr::null_mut() }));
+        let node = Box::into_raw(Box::new(Node {
+            value,
+            next: ptr::null_mut(),
+        }));
         let mut old = self.head.load(Ordering::Relaxed);
         loop {
             unsafe { (*node).next = old };
-            match self.head.compare_exchange_weak(old, node, Ordering::Relaxed, Ordering::Relaxed) {
+            match self
+                .head
+                .compare_exchange_weak(old, node, Ordering::Relaxed, Ordering::Relaxed)
+            {
                 Ok(_) => return,
                 Err(a) => old = a,
             }
@@ -180,10 +192,6 @@ fn aba_hazard_version_is_green() {
         h1.join().unwrap();
 
         let count = popped.load(Ordering::SeqCst);
-        assert!(
-            count <= 1,
-            "hazard 版不应 double-count，但 count={}",
-            count
-        );
+        assert!(count <= 1, "hazard 版不应 double-count，但 count={}", count);
     });
 }

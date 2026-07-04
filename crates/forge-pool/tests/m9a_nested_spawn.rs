@@ -81,7 +81,10 @@ fn v3_many_nested_spawns_under_load() {
         .collect();
     assert_eq!(all.len(), 40);
     for (i, v) in all.into_iter().enumerate() {
-        assert_eq!(v, vec![(i * 100) as i32, (i * 100 + 1) as i32, (i * 100 + 2) as i32]);
+        assert_eq!(
+            v,
+            vec![(i * 100) as i32, (i * 100 + 1) as i32, (i * 100 + 2) as i32]
+        );
     }
 }
 

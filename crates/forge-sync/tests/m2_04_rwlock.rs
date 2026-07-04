@@ -14,7 +14,10 @@ fn rwlock_allows_concurrent_readers() {
             let sum = sum.clone();
             s.spawn(move || {
                 let g = config.read().unwrap();
-                sum.fetch_add(g.iter().sum::<i32>() as i64, std::sync::atomic::Ordering::Relaxed);
+                sum.fetch_add(
+                    g.iter().sum::<i32>() as i64,
+                    std::sync::atomic::Ordering::Relaxed,
+                );
             });
         }
     });

@@ -1,9 +1,9 @@
 //! M8h Barrier 测试：可重用屏障、多轮汇合、generation 不混淆。
 
 use forge_lockfree::latch::Barrier;
-use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
+use std::sync::Arc;
 
 #[test]
 fn barrier_single_thread() {
@@ -35,7 +35,11 @@ fn barrier_releases_all() {
         h.join().unwrap();
     }
     assert_eq!(crossed.load(Ordering::SeqCst), 4);
-    assert_eq!(leader_count.load(Ordering::SeqCst), 1, "每轮恰好一个 leader");
+    assert_eq!(
+        leader_count.load(Ordering::SeqCst),
+        1,
+        "每轮恰好一个 leader"
+    );
 }
 
 #[test]

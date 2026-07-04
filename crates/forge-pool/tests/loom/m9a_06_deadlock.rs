@@ -112,17 +112,16 @@ fn green_recv_helps() {
 
         // spawn B：B 算出 42 后 send。
         let result_for_b = result.clone();
-        pool_push(&pool, Box::new(move || {
-            result_for_b.send(42);
-        }));
+        pool_push(
+            &pool,
+            Box::new(move || {
+                result_for_b.send(42);
+            }),
+        );
 
         // 主线程充当唯一 worker：correct recv 帮忙跑队列里的 B。
         let v = recv_correct(&result, &pool);
-        assert_eq!(
-            v,
-            Some(42),
-            "correct recv 应能跑到子任务并拿到结果"
-        );
+        assert_eq!(v, Some(42), "correct recv 应能跑到子任务并拿到结果");
     });
 }
 
@@ -134,9 +133,12 @@ fn red_recv_deadlocks() {
         let result = Arc::new(Oneshot::<u64>::new());
 
         let result_for_b = result.clone();
-        pool_push(&pool, Box::new(move || {
-            result_for_b.send(42);
-        }));
+        pool_push(
+            &pool,
+            Box::new(move || {
+                result_for_b.send(42);
+            }),
+        );
 
         // 主线程充当唯一 worker：buggy recv **不帮忙**跑队列里的 B。
         // B 永远不被弹 → result 永远是 None → recv_buggy 返回 None（stuck）。

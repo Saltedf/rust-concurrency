@@ -1,7 +1,7 @@
 //! M9b 测试 3：Delay + 多个并发 timer 的 reactor 协作。
 
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use forge_rt::{block_on, Delay, Reactor};

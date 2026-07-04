@@ -75,7 +75,10 @@ fn run_protocol(spin: Arc<MiniSpin>, lock_ord: Ordering, unlock_ord: Ordering) {
         //   buggy 版（Relaxed）：loom 找到"T2 读到解锁状态、但 value 写尚未传播"
         //     的交错 → 断言失败 → 红。
         //   正确版（Acquire/Release）：HB 接通 → 绿。
-        assert_eq!(seen, 42, "拿到锁却读不到上一个临界区的写：缺少 Acquire/Release");
+        assert_eq!(
+            seen, 42,
+            "拿到锁却读不到上一个临界区的写：缺少 Acquire/Release"
+        );
     }
 
     h.join().unwrap();

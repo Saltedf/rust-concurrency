@@ -40,5 +40,9 @@ fn many_workers_drain_the_queue() {
         }
     });
 
-    assert_eq!(done.load(Ordering::Relaxed), N_TASKS, "1000 个任务必须全部被处理");
+    assert_eq!(
+        done.load(Ordering::Relaxed),
+        N_TASKS,
+        "1000 个任务必须全部被处理"
+    );
 }

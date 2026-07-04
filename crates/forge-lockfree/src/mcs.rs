@@ -69,7 +69,12 @@ impl Drop for McsGuard<'_> {
             if self
                 .lock
                 .tail
-                .compare_exchange(self.node, std::ptr::null_mut(), Ordering::Release, Ordering::Relaxed)
+                .compare_exchange(
+                    self.node,
+                    std::ptr::null_mut(),
+                    Ordering::Release,
+                    Ordering::Relaxed,
+                )
                 .is_ok()
             {
                 unsafe { drop(Box::from_raw(self.node)) };

@@ -8,7 +8,7 @@
 //! 内存序：counter 和 num_waiters 都用 Relaxed——所需同步全由**配对的 mutex**
 //! 提供（解锁-加锁的 happens-before）。教程详讲。
 
-use crate::atomic_wait::{wake_all, wake_one, wait};
+use crate::atomic_wait::{wait, wake_all, wake_one};
 use crate::mutex::MutexGuard;
 use std::sync::atomic::{AtomicU32, AtomicUsize, Ordering::Relaxed};
 

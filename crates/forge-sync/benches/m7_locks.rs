@@ -19,9 +19,9 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use forge_sync::mutex::Mutex as ForgeMutex;
 use parking_lot::Mutex as ParkingLotMutex;
-use std::sync::Mutex as StdMutex;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Barrier;
+use std::sync::Mutex as StdMutex;
 use std::thread;
 
 const UNCONTESTED_ITERS: u64 = 1_000;

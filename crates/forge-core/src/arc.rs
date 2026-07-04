@@ -99,11 +99,12 @@ impl<T> Arc<T> {
             assert!(n < usize::MAX - 1);
             // Acquire：与 get_mut 的 Release-store 同步，防止"get_mut 之后的一个 Arc::drop"
             //          的效果在 get_mut 解锁前就被本线程看到（那会让 get_mut 漏判）。
-            match arc
-                .data()
-                .alloc_ref_count
-                .compare_exchange_weak(n, n + 1, Ordering::Acquire, Ordering::Relaxed)
-            {
+            match arc.data().alloc_ref_count.compare_exchange_weak(
+                n,
+                n + 1,
+                Ordering::Acquire,
+                Ordering::Relaxed,
+            ) {
                 Ok(_) => return Weak { ptr: arc.ptr },
                 Err(e) => n = e,
             }
@@ -134,7 +135,7 @@ impl<T> Drop for Arc<T> {
         // Release 减量；只有"最后一个"（从 1 减到 0）才需要 Acquire。
         if self.data().data_ref_count.fetch_sub(1, Ordering::Release) == 1 {
             fence(Ordering::Acquire); // 与之前所有 Arc::drop 的 Release 同步
-            // 安全：data_ref_count 已为 0，没人再碰数据。
+                                      // 安全：data_ref_count 已为 0，没人再碰数据。
             unsafe {
                 ManuallyDrop::drop(&mut *self.data().data.get());
             }
@@ -159,11 +160,12 @@ impl<T> Weak<T> {
             }
             assert!(n < usize::MAX);
             // CAS 把 data_ref_count 从 n 加到 n+1。Relaxed：只是计数。
-            match self
-                .data()
-                .data_ref_count
-                .compare_exchange_weak(n, n + 1, Ordering::Relaxed, Ordering::Relaxed)
-            {
+            match self.data().data_ref_count.compare_exchange_weak(
+                n,
+                n + 1,
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+            ) {
                 Ok(_) => return Some(Arc { ptr: self.ptr }),
                 Err(e) => n = e,
             }

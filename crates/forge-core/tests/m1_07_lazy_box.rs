@@ -32,6 +32,10 @@ fn lazy_box_publishes_one_consistent_value() {
 
     let seen = seen.lock().unwrap();
     let first = seen[0];
-    assert!(seen.iter().all(|v| *v == first), "所有线程必须看到同一个值，实际: {:?}", *seen);
+    assert!(
+        seen.iter().all(|v| *v == first),
+        "所有线程必须看到同一个值，实际: {:?}",
+        *seen
+    );
     assert!(made.load(Ordering::Relaxed) >= 1, "至少构造过一次");
 }

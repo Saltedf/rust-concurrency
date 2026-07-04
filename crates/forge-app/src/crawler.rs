@@ -263,8 +263,7 @@ impl<F: Fetcher + Send + Sync + 'static> Crawler<F> {
         // 当它归零时，主线程可以确定不会再有结果来了——可以安全结束。
         // （注意：worker 必须先 inc 再 send，否则主线程可能在 send 之后、
         //  inc 之前看到 0 而提前退出，丢掉这条结果。）
-        let in_flight_results =
-            Arc::new(std::sync::atomic::AtomicUsize::new(seed_urls.len()));
+        let in_flight_results = Arc::new(std::sync::atomic::AtomicUsize::new(seed_urls.len()));
         for u in &seed_urls {
             pending.push(u.clone());
         }
@@ -317,10 +316,7 @@ impl<F: Fetcher + Send + Sync + 'static> Crawler<F> {
                                     new_links += 1;
                                     // 这条新链接会变成一次未来的 fetch，
                                     // 也就是一条未来的结果：现在就 +1
-                                    in_flight.fetch_add(
-                                        1,
-                                        std::sync::atomic::Ordering::SeqCst,
-                                    );
+                                    in_flight.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
                                     pending.push(link);
                                 }
                             }
@@ -340,10 +336,7 @@ impl<F: Fetcher + Send + Sync + 'static> Crawler<F> {
                             // 失败：这条 URL 当初占了一个 +1 名额但不会发
                             // 结果。我们必须把名额还回去，否则 in_flight
                             // 永远不归零，主线程会卡在 recv。
-                            in_flight.fetch_sub(
-                                1,
-                                std::sync::atomic::Ordering::SeqCst,
-                            );
+                            in_flight.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
                         }
                     }
                 });
@@ -478,7 +471,10 @@ mod tests {
     impl MockFetcher {
         fn new(pages: &[(&str, &str)]) -> Self {
             Self {
-                pages: pages.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+                pages: pages
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect(),
             }
         }
     }

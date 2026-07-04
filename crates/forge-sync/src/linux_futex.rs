@@ -23,9 +23,9 @@ pub fn wait(a: &AtomicU32, expected: u32) {
     unsafe {
         libc::syscall(
             libc::SYS_futex,
-            a as *const AtomicU32, // 要操作的 32 位原子地址
-            FUTEX_WAIT,            // 操作
-            expected,              // 期望值：不匹配则立刻返回、不入睡
+            a as *const AtomicU32,              // 要操作的 32 位原子地址
+            FUTEX_WAIT,                         // 操作
+            expected,                           // 期望值：不匹配则立刻返回、不入睡
             std::ptr::null::<libc::timespec>(), // 无超时
         );
     }

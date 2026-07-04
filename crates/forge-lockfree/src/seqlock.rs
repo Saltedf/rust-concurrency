@@ -32,8 +32,11 @@ impl<T: Copy> SeqLock<T> {
     /// 写者进入临界区：计数器从偶变奇。返回一个 guard，drop 时计数器 +1 回偶。
     pub fn write(&self) -> WriteGuard<'_, T> {
         let seq = self.seq.fetch_add(1, Ordering::AcqRel); // 偶→奇
-        // AcqRel：之前的写都已发布，且我们看到之前读者的状态。
-        WriteGuard { lock: self, _start_seq: seq }
+                                                           // AcqRel：之前的写都已发布，且我们看到之前读者的状态。
+        WriteGuard {
+            lock: self,
+            _start_seq: seq,
+        }
     }
 
     /// 读者：无阻塞地读一个一致快照；若写者正在改就重试。

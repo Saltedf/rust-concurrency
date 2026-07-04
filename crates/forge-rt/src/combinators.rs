@@ -52,7 +52,10 @@ where
     B: Future,
 {
     pub fn new(a: A, b: B) -> Self {
-        Self { a: Some(a), b: Some(b) }
+        Self {
+            a: Some(a),
+            b: Some(b),
+        }
     }
 }
 
@@ -234,7 +237,10 @@ where
 {
     pub fn new(first: F, chain: Fn) -> Self {
         Self {
-            inner: ThenState::First { first, chain: Some(chain) },
+            inner: ThenState::First {
+                first,
+                chain: Some(chain),
+            },
         }
     }
 }
@@ -257,9 +263,9 @@ where
                         Poll::Pending => return Poll::Pending,
                     };
                     // take 走 chain（FnOnce），用它构造第二个 future。
-                    let chain = chain
-                        .take()
-                        .expect("ThenState::First 的 chain 应当还在（状态机只走一次 First → Second）");
+                    let chain = chain.take().expect(
+                        "ThenState::First 的 chain 应当还在（状态机只走一次 First → Second）",
+                    );
                     let second = chain(v);
                     this.inner = ThenState::Second { second };
                 }

@@ -58,8 +58,10 @@ impl BuggyDeque {
             bottom: AtomicIsize::new(0),
             top: AtomicIsize::new(0),
             slots: [
-                AtomicUsize::new(0), AtomicUsize::new(0),
-                AtomicUsize::new(0), AtomicUsize::new(0),
+                AtomicUsize::new(0),
+                AtomicUsize::new(0),
+                AtomicUsize::new(0),
+                AtomicUsize::new(0),
             ],
         }
     }
@@ -116,8 +118,10 @@ impl SafeDeque {
             bottom: AtomicIsize::new(0),
             top: AtomicIsize::new(0),
             slots: [
-                AtomicUsize::new(0), AtomicUsize::new(0),
-                AtomicUsize::new(0), AtomicUsize::new(0),
+                AtomicUsize::new(0),
+                AtomicUsize::new(0),
+                AtomicUsize::new(0),
+                AtomicUsize::new(0),
             ],
         }
     }

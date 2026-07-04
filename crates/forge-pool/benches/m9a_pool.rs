@@ -97,40 +97,32 @@ fn bench_stealing_pool(c: &mut Criterion) {
     // pool 可能比 std 快 50 倍；在 5000 任务时差距可能掉到 10 倍——
     // 因为 std 的 spawn 也走 OS 调度器缓存，热起来后单次 spawn 稍快。
     for &n in TASKS_LIST {
-        group.bench_with_input(
-            BenchmarkId::new("stealing_curve", n),
-            &n,
-            |b, &n| {
-                b.iter(|| {
-                    let mut handles = Vec::with_capacity(n);
-                    for _ in 0..n {
-                        handles.push(pool.spawn(short_task));
-                    }
-                    let mut sum = 0u64;
-                    for h in handles {
-                        sum = sum.wrapping_add(h.recv());
-                    }
-                    black_box(sum);
-                });
-            },
-        );
-        group.bench_with_input(
-            BenchmarkId::new("std_thread_curve", n),
-            &n,
-            |b, &n| {
-                b.iter(|| {
-                    let mut handles = Vec::with_capacity(n);
-                    for _ in 0..n {
-                        handles.push(std::thread::spawn(short_task));
-                    }
-                    let mut sum = 0u64;
-                    for h in handles {
-                        sum = sum.wrapping_add(h.join().unwrap());
-                    }
-                    black_box(sum);
-                });
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("stealing_curve", n), &n, |b, &n| {
+            b.iter(|| {
+                let mut handles = Vec::with_capacity(n);
+                for _ in 0..n {
+                    handles.push(pool.spawn(short_task));
+                }
+                let mut sum = 0u64;
+                for h in handles {
+                    sum = sum.wrapping_add(h.recv());
+                }
+                black_box(sum);
+            });
+        });
+        group.bench_with_input(BenchmarkId::new("std_thread_curve", n), &n, |b, &n| {
+            b.iter(|| {
+                let mut handles = Vec::with_capacity(n);
+                for _ in 0..n {
+                    handles.push(std::thread::spawn(short_task));
+                }
+                let mut sum = 0u64;
+                for h in handles {
+                    sum = sum.wrapping_add(h.join().unwrap());
+                }
+                black_box(sum);
+            });
+        });
     }
 
     group.finish();

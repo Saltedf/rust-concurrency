@@ -76,10 +76,7 @@ const PAR_MAP_CUTOFF: usize = 256;
 /// 它在干右半的活——相当于免费把自己时间片用满,然后 spawn 出去的
 /// 左半被空闲 worker 偷走。如果改成"两半都 spawn 然后都等",本线程
 /// 在 recv 之前啥都不做,白白浪费一个核(详见教程递归树手算)。
-pub fn par_sort<T: Ord + Clone + Send + Sync + 'static>(
-    pool: &Arc<StealingPool>,
-    slice: &mut [T],
-) {
+pub fn par_sort<T: Ord + Clone + Send + Sync + 'static>(pool: &Arc<StealingPool>, slice: &mut [T]) {
     // 基线:小切片走串行,不再切分。
     if slice.len() <= PAR_SORT_CUTOFF {
         slice.sort();
@@ -119,20 +116,14 @@ pub fn par_sort<T: Ord + Clone + Send + Sync + 'static>(
         // 先把 left_ptr 整体 bind 成局部变量再取 .0,避免 2021 edition 的
         // "分字段捕获"把裸指针 *mut T 单独抓进闭包(那样它 !Send)。
         let p = left_ptr;
-        let left_slice: &mut [T] = unsafe {
-            std::slice::from_raw_parts_mut(p.0, left_len)
-        };
+        let left_slice: &mut [T] = unsafe { std::slice::from_raw_parts_mut(p.0, left_len) };
         par_sort(&pool_clone, left_slice);
     });
 
     // 本线程排右半:此时左半任务在队列里(被别的 worker 偷走或在 recv 时被本
     // 线程跑掉)。本线程不停下来等,而是先把右半排完。
-    let right_slice: &mut [T] = unsafe {
-        std::slice::from_raw_parts_mut(
-            right_ptr.0,
-            slice.len() - right_start,
-        )
-    };
+    let right_slice: &mut [T] =
+        unsafe { std::slice::from_raw_parts_mut(right_ptr.0, slice.len() - right_start) };
     par_sort(pool, right_slice);
 
     // 等左半完成。如果左半还没被别的 worker 偷走、还在本 worker 的队列里,
@@ -174,8 +165,8 @@ fn partition_three_way<T: Ord + Clone>(slice: &mut [T]) -> (usize, usize) {
     //   [lt..i)     == pivot
     //   [i..gt)     未扫描
     //   [gt..)      > pivot
-    let mut lt = 0usize;   // 下一个 < pivot 的写入位置
-    let mut gt = n;        // 下一个 > pivot 的写入位置(从右往左)
+    let mut lt = 0usize; // 下一个 < pivot 的写入位置
+    let mut gt = n; // 下一个 > pivot 的写入位置(从右往左)
     let mut i = 0usize;
     while i < gt {
         let cmp = slice[i].cmp(&pivot);
@@ -218,10 +209,7 @@ where
     }
     let n_workers = std::cmp::max(1, num_workers_hint());
     // 段数:既不能太少(喂不饱 worker),也不能太多(任务太碎)。
-    let n_chunks = std::cmp::min(
-        std::cmp::max(n / PAR_MAP_CUTOFF, 1),
-        n_workers * 4,
-    );
+    let n_chunks = std::cmp::min(std::cmp::max(n / PAR_MAP_CUTOFF, 1), n_workers * 4);
     let n_chunks = std::cmp::max(n_chunks, 1);
     let chunk_len = (n + n_chunks - 1) / n_chunks;
 
@@ -244,8 +232,7 @@ where
             // 先 bind wrapper 整体,避免 2021 分字段捕获把裸指针抓走。
             let ip = in_ptr;
             let op = out_ptr;
-            let in_slice: &[T] =
-                unsafe { std::slice::from_raw_parts(ip.0.add(start), len) };
+            let in_slice: &[T] = unsafe { std::slice::from_raw_parts(ip.0.add(start), len) };
             let out_slice: &mut [U] =
                 unsafe { std::slice::from_raw_parts_mut(op.0.add(start), len) };
             for (i, x) in in_slice.iter().enumerate() {
@@ -298,10 +285,7 @@ where
         return init();
     }
     let n_workers = std::cmp::max(1, num_workers_hint());
-    let n_chunks = std::cmp::min(
-        std::cmp::max(n / PAR_MAP_CUTOFF, 1),
-        n_workers * 4,
-    );
+    let n_chunks = std::cmp::min(std::cmp::max(n / PAR_MAP_CUTOFF, 1), n_workers * 4);
     let n_chunks = std::cmp::max(n_chunks, 1);
     let chunk_len = (n + n_chunks - 1) / n_chunks;
 
@@ -321,8 +305,7 @@ where
             // 安全:本任务访问 slice[start..end],与其它任务/主线程不重叠。
             // 先 bind wrapper,避免 2021 分字段捕获。
             let ip = in_ptr;
-            let in_slice: &[T] =
-                unsafe { std::slice::from_raw_parts(ip.0.add(start), len) };
+            let in_slice: &[T] = unsafe { std::slice::from_raw_parts(ip.0.add(start), len) };
             let mut acc = init_clone();
             for x in in_slice {
                 acc = step_clone(acc, x);
@@ -383,9 +366,7 @@ impl ParIter {
         let buf: Vec<i64> = slice.to_vec();
         let buf = Arc::new(buf);
         let buf_clone = Arc::clone(&buf);
-        let chunk_fn = Arc::new(move |start: usize, end: usize| {
-            buf_clone[start..end].to_vec()
-        });
+        let chunk_fn = Arc::new(move |start: usize, end: usize| buf_clone[start..end].to_vec());
         Self { n, chunk_fn }
     }
 
@@ -403,7 +384,10 @@ impl ParIter {
             }
             v
         });
-        Self { n: self.n, chunk_fn }
+        Self {
+            n: self.n,
+            chunk_fn,
+        }
     }
 
     /// `.filter(pred)`:返回新的 ParIter。
@@ -417,7 +401,10 @@ impl ParIter {
             let v = prev(start, end);
             v.into_iter().filter(|x| pred(*x)).collect()
         });
-        Self { n: self.n, chunk_fn }
+        Self {
+            n: self.n,
+            chunk_fn,
+        }
     }
 
     /// 终端:sum。切段并行跑 chunk_fn,各段求和,最后串行加总。
@@ -427,10 +414,7 @@ impl ParIter {
             return 0;
         }
         let n_workers = std::cmp::max(1, num_workers_hint());
-        let n_chunks = std::cmp::min(
-            std::cmp::max(n / PAR_MAP_CUTOFF, 1),
-            n_workers * 4,
-        );
+        let n_chunks = std::cmp::min(std::cmp::max(n / PAR_MAP_CUTOFF, 1), n_workers * 4);
         let n_chunks = std::cmp::max(n_chunks, 1);
         let chunk_len = (n + n_chunks - 1) / n_chunks;
 
@@ -466,10 +450,7 @@ impl ParIter {
         let chunk_fn = self.chunk_fn;
         let f = Arc::new(f);
         let n_workers = std::cmp::max(1, num_workers_hint());
-        let n_chunks = std::cmp::min(
-            std::cmp::max(n / PAR_MAP_CUTOFF, 1),
-            n_workers * 4,
-        );
+        let n_chunks = std::cmp::min(std::cmp::max(n / PAR_MAP_CUTOFF, 1), n_workers * 4);
         let n_chunks = std::cmp::max(n_chunks, 1);
         let chunk_len = (n + n_chunks - 1) / n_chunks;
 

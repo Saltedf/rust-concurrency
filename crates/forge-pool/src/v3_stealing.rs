@@ -101,7 +101,9 @@ impl StealingPool {
 
         let state = Arc::new(PoolState {
             shutdown: AtomicBool::new(false),
-            injector: (0..n_workers).map(|_| Mutex::new(VecDeque::new())).collect(),
+            injector: (0..n_workers)
+                .map(|_| Mutex::new(VecDeque::new()))
+                .collect(),
             next_external: AtomicUsize::new(0),
             worker_threads: Mutex::new(Vec::with_capacity(n_workers)),
             n_workers,

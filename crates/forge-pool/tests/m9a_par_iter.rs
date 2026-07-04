@@ -20,10 +20,7 @@ fn par_iter_map_filter_sum() {
         .map(|x| x * 2)
         .filter(|x| x % 3 == 0)
         .sum(&pool);
-    let expected: i64 = (0..10_000i64)
-        .map(|x| x * 2)
-        .filter(|x| x % 3 == 0)
-        .sum();
+    let expected: i64 = (0..10_000i64).map(|x| x * 2).filter(|x| x % 3 == 0).sum();
     assert_eq!(total, expected);
 }
 
@@ -56,9 +53,7 @@ fn par_iter_empty() {
 fn par_iter_filter_drops_all() {
     let pool = Arc::new(StealingPool::new(4));
     let input: Vec<i64> = (0..2_000).collect();
-    let total = ParIter::from_slice(&input)
-        .filter(|_| false)
-        .sum(&pool);
+    let total = ParIter::from_slice(&input).filter(|_| false).sum(&pool);
     assert_eq!(total, 0);
 }
 

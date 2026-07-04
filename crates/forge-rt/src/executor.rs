@@ -152,10 +152,14 @@ pub struct Runtime {
 impl Runtime {
     /// 起一台运行时：N worker + 一个 reactor + 全局 schedule 闭包。
     pub fn new(n_workers: usize, reactor: Reactor) -> std::io::Result<Self> {
-        let queues: Vec<Arc<LocalQueue>> = (0..n_workers).map(|_| Arc::new(LocalQueue::new())).collect();
+        let queues: Vec<Arc<LocalQueue>> = (0..n_workers)
+            .map(|_| Arc::new(LocalQueue::new()))
+            .collect();
         let state = Arc::new(PoolState {
             shutdown: AtomicBool::new(false),
-            injector: (0..n_workers).map(|_| Mutex::new(VecDeque::new())).collect(),
+            injector: (0..n_workers)
+                .map(|_| Mutex::new(VecDeque::new()))
+                .collect(),
             next_external: AtomicUsize::new(0),
             worker_threads: Mutex::new(Vec::with_capacity(n_workers)),
             n_workers,
@@ -166,24 +170,25 @@ impl Runtime {
         // schedule 闭包：决定"task 被 wake 后塞到哪个队列"。
         // 规则：如果当前在 worker 上，push 到本地（LIFO）；否则塞某个 injector 槽。
         let st = state.clone();
-        let schedule: Arc<dyn Fn(Arc<Task>) + Send + Sync + 'static> = Arc::new(move |task: Arc<Task>| {
-            let pushed_local = WORKER.with(|w| {
-                if let Some(h) = w.borrow().as_ref() {
-                    h.local.push(task.clone());
-                    return true;
+        let schedule: Arc<dyn Fn(Arc<Task>) + Send + Sync + 'static> =
+            Arc::new(move |task: Arc<Task>| {
+                let pushed_local = WORKER.with(|w| {
+                    if let Some(h) = w.borrow().as_ref() {
+                        h.local.push(task.clone());
+                        return true;
+                    }
+                    false
+                });
+                if !pushed_local {
+                    let n = st.n_workers;
+                    let idx = st.next_external.fetch_add(1, Ordering::Relaxed) % n;
+                    st.injector[idx].lock().unwrap().push_back(task);
                 }
-                false
+                // 加 pending 并通知。
+                let mut p = st.pending.lock().unwrap();
+                *p += 1;
+                st.pending_cv.notify_all();
             });
-            if !pushed_local {
-                let n = st.n_workers;
-                let idx = st.next_external.fetch_add(1, Ordering::Relaxed) % n;
-                st.injector[idx].lock().unwrap().push_back(task);
-            }
-            // 加 pending 并通知。
-            let mut p = st.pending.lock().unwrap();
-            *p += 1;
-            st.pending_cv.notify_all();
-        });
 
         // 起 worker 线程。
         let mut workers = Vec::with_capacity(n_workers);
@@ -215,7 +220,11 @@ impl Runtime {
             }
         }
 
-        Ok(Self { state, reactor, schedule })
+        Ok(Self {
+            state,
+            reactor,
+            schedule,
+        })
     }
 
     /// 把一个 future 投到运行时上跑。返回 [`JoinHandle`] 拿结果。
@@ -230,7 +239,10 @@ impl Runtime {
         // 把 task 入队（复用 schedule 闘包）。
         (self.schedule)(task);
 
-        JoinHandle { receiver, _rt: self.clone() }
+        JoinHandle {
+            receiver,
+            _rt: self.clone(),
+        }
     }
 
     /// 在当前线程上把 future 跑到完。期间帮忙跑别的就绪任务（worker 线程）或

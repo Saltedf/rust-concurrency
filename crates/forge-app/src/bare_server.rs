@@ -55,10 +55,9 @@
 #![cfg(target_os = "linux")]
 
 use libc::{
-    c_int, c_void, close, epoll_create1, epoll_ctl, epoll_event, epoll_wait, accept4,
-    setsockopt, sockaddr_in, socklen_t, EPOLLIN, EPOLLET, EPOLLERR, EPOLLHUP,
-    EPOLL_CTL_ADD, EPOLL_CTL_DEL, EPOLL_CLOEXEC, AF_INET, SOCK_NONBLOCK, SOCK_STREAM,
-    SOL_SOCKET, SO_REUSEADDR,
+    accept4, c_int, c_void, close, epoll_create1, epoll_ctl, epoll_event, epoll_wait, setsockopt,
+    sockaddr_in, socklen_t, AF_INET, EPOLLERR, EPOLLET, EPOLLHUP, EPOLLIN, EPOLL_CLOEXEC,
+    EPOLL_CTL_ADD, EPOLL_CTL_DEL, SOCK_NONBLOCK, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR,
 };
 use std::io;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
@@ -111,7 +110,10 @@ impl BareEchoServer {
             SocketAddr::V4(v4) => v4,
             SocketAddr::V6(_) => {
                 let e = io::Error::new(io::ErrorKind::InvalidInput, "IPv6 unsupported (teaching)");
-                unsafe { close(listen_fd); close(epfd) };
+                unsafe {
+                    close(listen_fd);
+                    close(epfd)
+                };
                 return Err(e);
             }
         };
@@ -128,14 +130,20 @@ impl BareEchoServer {
         };
         if ret < 0 {
             let e = io::Error::last_os_error();
-            unsafe { close(listen_fd); close(epfd) };
+            unsafe {
+                close(listen_fd);
+                close(epfd)
+            };
             return Err(e);
         }
 
         let ret = unsafe { libc::listen(listen_fd, 128) };
         if ret < 0 {
             let e = io::Error::last_os_error();
-            unsafe { close(listen_fd); close(epfd) };
+            unsafe {
+                close(listen_fd);
+                close(epfd)
+            };
             return Err(e);
         }
 
@@ -150,7 +158,10 @@ impl BareEchoServer {
         let ret = unsafe { epoll_ctl(epfd, EPOLL_CTL_ADD, listen_fd, &mut ev) };
         if ret < 0 {
             let e = io::Error::last_os_error();
-            unsafe { close(listen_fd); close(epfd) };
+            unsafe {
+                close(listen_fd);
+                close(epfd)
+            };
             return Err(e);
         }
 

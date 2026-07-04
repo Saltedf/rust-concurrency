@@ -33,7 +33,9 @@ fn random_vec(n: usize) -> Vec<u64> {
 }
 
 fn bench_par_sort_vs_rayon(c: &mut Criterion) {
-    let workers = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4);
+    let workers = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4);
     // 池在整个 group 内复用：建池有成本（起 worker 线程），不该每条都重建。
     let pool = Arc::new(StealingPool::new(workers));
 

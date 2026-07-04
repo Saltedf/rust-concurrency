@@ -101,8 +101,9 @@ fn queue_mpmc_no_loss_no_dup() {
 
     // 不变量：每个 (pid, k) 恰好出现一次。
     assert_eq!(all.len() as u32, TOTAL, "总元素数必须等于生产总数");
-    let mut seen: Vec<Vec<bool>> =
-        (0..PRODUCERS).map(|_| vec![false; PER_PRODUCER as usize]).collect();
+    let mut seen: Vec<Vec<bool>> = (0..PRODUCERS)
+        .map(|_| vec![false; PER_PRODUCER as usize])
+        .collect();
     for (pid, k) in all {
         assert!(!seen[pid as usize][k as usize], "重复出现: ({},{})", pid, k);
         seen[pid as usize][k as usize] = true;

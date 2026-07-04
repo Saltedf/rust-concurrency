@@ -30,8 +30,8 @@
 //! 思想完全相同，只是把"睡眠等"换成了"挂起让出执行权"。
 
 use crate::event_bus; // 仅用于示例：actor 之间可以互相发消息
-use std::collections::VecDeque;
 use std::collections::HashMap;
+use std::collections::VecDeque;
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread::{self, JoinHandle};
 
@@ -86,7 +86,9 @@ pub fn reply_channel<T>() -> (Reply<T>, ReplyRx<T>) {
         cv: Condvar::new(),
     });
     (
-        Reply { core: Arc::clone(&core) },
+        Reply {
+            core: Arc::clone(&core),
+        },
         ReplyRx { core },
     )
 }
@@ -143,7 +145,9 @@ impl<T> Clone for InboxTx<T> {
         self.shared
             .sender_count
             .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        Self { shared: Arc::clone(&self.shared) }
+        Self {
+            shared: Arc::clone(&self.shared),
+        }
     }
 }
 
@@ -173,7 +177,12 @@ impl<T> InboxRx<T> {
                 return Some(m);
             }
             // sender_count == 0 表示所有 sender 都已 drop。
-            if self.shared.sender_count.load(std::sync::atomic::Ordering::SeqCst) == 0 {
+            if self
+                .shared
+                .sender_count
+                .load(std::sync::atomic::Ordering::SeqCst)
+                == 0
+            {
                 return None;
             }
             q = self.shared.not_empty.wait(q).unwrap();
@@ -188,7 +197,12 @@ fn inbox_channel<T>() -> (InboxTx<T>, InboxRx<T>) {
         // 初始：1 个 sender（刚创建的那一个）。receiver 不算。
         sender_count: std::sync::atomic::AtomicUsize::new(1),
     });
-    (InboxTx { shared: Arc::clone(&shared) }, InboxRx { shared })
+    (
+        InboxTx {
+            shared: Arc::clone(&shared),
+        },
+        InboxRx { shared },
+    )
 }
 
 // ============================================================================
@@ -213,7 +227,9 @@ impl<M> Handle<M> {
 
 impl<M> Clone for Handle<M> {
     fn clone(&self) -> Self {
-        Self { tx: self.tx.clone() }
+        Self {
+            tx: self.tx.clone(),
+        }
     }
 }
 
@@ -387,10 +403,7 @@ pub struct BroadcastState<T: Clone + Send + 'static> {
     pub bus: event_bus::EventBus<T>,
 }
 
-pub fn broadcast_handler<T: Clone + Send + 'static>(
-    state: &mut BroadcastState<T>,
-    msg: T,
-) {
+pub fn broadcast_handler<T: Clone + Send + 'static>(state: &mut BroadcastState<T>, msg: T) {
     state.bus.publish(&msg);
 }
 

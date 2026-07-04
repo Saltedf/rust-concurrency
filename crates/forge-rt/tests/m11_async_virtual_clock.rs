@@ -35,29 +35,41 @@ pub struct MockInstant {
 }
 
 impl MockInstant {
-    pub fn zero() -> Self { Self { ms: 0 } }
-    pub fn from_millis(ms: u64) -> Self { Self { ms } }
+    pub fn zero() -> Self {
+        Self { ms: 0 }
+    }
+    pub fn from_millis(ms: u64) -> Self {
+        Self { ms }
+    }
 }
 
 impl std::ops::Add<MockDuration> for MockInstant {
     type Output = MockInstant;
     fn add(self, rhs: MockDuration) -> MockInstant {
-        MockInstant { ms: self.ms + rhs.ms }
+        MockInstant {
+            ms: self.ms + rhs.ms,
+        }
     }
 }
 
 impl Sub for MockInstant {
     type Output = MockDuration;
     fn sub(self, rhs: MockInstant) -> MockDuration {
-        MockDuration { ms: self.ms.saturating_sub(rhs.ms) }
+        MockDuration {
+            ms: self.ms.saturating_sub(rhs.ms),
+        }
     }
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct MockDuration { pub ms: u64 }
+pub struct MockDuration {
+    pub ms: u64,
+}
 
 impl MockDuration {
-    pub fn from_millis(ms: u64) -> Self { Self { ms } }
+    pub fn from_millis(ms: u64) -> Self {
+        Self { ms }
+    }
 }
 
 /// 虚拟时钟:从一个起点开始,被测试代码手动推进。
@@ -68,17 +80,23 @@ pub struct VirtualClock {
 
 impl VirtualClock {
     pub fn new() -> Self {
-        Self { current: Cell::new(MockInstant::zero()) }
+        Self {
+            current: Cell::new(MockInstant::zero()),
+        }
     }
     /// 把时钟向前推 `dt`。这是测试代码的"上帝之手"。
     pub fn advance(&self, dt: MockDuration) {
         self.current.set(self.current.get() + dt);
     }
-    pub fn now_ms(&self) -> u64 { self.current.get().ms }
+    pub fn now_ms(&self) -> u64 {
+        self.current.get().ms
+    }
 }
 
 impl Clock for VirtualClock {
-    fn now(&self) -> MockInstant { self.current.get() }
+    fn now(&self) -> MockInstant {
+        self.current.get()
+    }
 }
 
 // =========================================================================
@@ -99,7 +117,9 @@ impl VDelay {
             clock,
         }
     }
-    pub fn deadline_ms(&self) -> u64 { self.deadline.ms }
+    pub fn deadline_ms(&self) -> u64 {
+        self.deadline.ms
+    }
 }
 
 impl Future for VDelay {
@@ -195,8 +215,14 @@ pub struct BuggySemaphore {
 }
 
 impl BuggySemaphore {
-    pub fn new() -> Self { Self { count: Cell::new(1) } }
-    pub fn count(&self) -> u32 { self.count.get() }
+    pub fn new() -> Self {
+        Self {
+            count: Cell::new(1),
+        }
+    }
+    pub fn count(&self) -> u32 {
+        self.count.get()
+    }
 
     /// 读-改-写版本,非原子。bug 在于"future 返回 Pending 时,
     /// 把许可还回去用的是'读 count → +1 → 写回'模式"。
@@ -255,7 +281,10 @@ fn toctou_bug_demonstration() {
     clock.advance(MockDuration::from_millis(10));
     match sem.try_acquire_with_future(&mut a) {
         Poll::Ready(true) => { /* 期望路径 */ }
-        other => panic!("deadline 到期后应当 Ready(true),得到 {:?}", other.is_ready()),
+        other => panic!(
+            "deadline 到期后应当 Ready(true),得到 {:?}",
+            other.is_ready()
+        ),
     }
     assert_eq!(sem.count(), 0, "acquire 成功后 count 应当为 0");
 }
@@ -277,19 +306,27 @@ fn delay_invariant_under_random_poll_sequences() {
         let mut steps = 0;
         loop {
             // LCG 推进一步。
-            state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            state = state
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
             let action = state % 2;
             match action {
                 0 => {
                     // poll。
                     let p = poll_once(&mut delay);
                     if clock.now() >= delay.deadline_ms().into_ms_instant() {
-                        assert!(matches!(p, Poll::Ready(())),
-                            "seed {}: clock 已过 deadline 但 delay 没 Ready", seed);
+                        assert!(
+                            matches!(p, Poll::Ready(())),
+                            "seed {}: clock 已过 deadline 但 delay 没 Ready",
+                            seed
+                        );
                         break;
                     } else {
-                        assert!(matches!(p, Poll::Pending),
-                            "seed {}: clock 没过 deadline 但 delay Ready 了", seed);
+                        assert!(
+                            matches!(p, Poll::Pending),
+                            "seed {}: clock 没过 deadline 但 delay Ready 了",
+                            seed
+                        );
                     }
                 }
                 _ => {
@@ -304,7 +341,11 @@ fn delay_invariant_under_random_poll_sequences() {
 }
 
 // 一个把 u64 ms 包成 MockInstant 的小辅助(为了让上面那条测试可读)。
-trait MsExt { fn into_ms_instant(self) -> MockInstant; }
+trait MsExt {
+    fn into_ms_instant(self) -> MockInstant;
+}
 impl MsExt for u64 {
-    fn into_ms_instant(self) -> MockInstant { MockInstant::from_millis(self) }
+    fn into_ms_instant(self) -> MockInstant {
+        MockInstant::from_millis(self)
+    }
 }

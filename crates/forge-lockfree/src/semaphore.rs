@@ -7,7 +7,7 @@
 //!
 //! 这里用单个 `AtomicU32` + atomic-wait（futex）实现：非竞争路径只有一次 CAS。
 
-use atomic_wait::{wake_one, wait};
+use atomic_wait::{wait, wake_one};
 use std::sync::atomic::{AtomicU32, Ordering};
 
 pub struct Semaphore {

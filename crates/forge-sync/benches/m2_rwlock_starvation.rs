@@ -58,19 +58,37 @@ struct StdRw(std::sync::RwLock<u64>);
 impl RwLockApi for StdRw {
     type ReadGuard<'a> = std::sync::RwLockReadGuard<'a, u64>;
     type WriteGuard<'a> = std::sync::RwLockWriteGuard<'a, u64>;
-    fn new(v: u64) -> Self { StdRw(std::sync::RwLock::new(v)) }
-    fn read(&self) -> Self::ReadGuard<'_> { self.0.read().unwrap() }
-    fn write(&self) -> Self::WriteGuard<'_> { self.0.write().unwrap() }
+    fn new(v: u64) -> Self {
+        StdRw(std::sync::RwLock::new(v))
+    }
+    fn read(&self) -> Self::ReadGuard<'_> {
+        self.0.read().unwrap()
+    }
+    fn write(&self) -> Self::WriteGuard<'_> {
+        self.0.write().unwrap()
+    }
 }
 
 // —— forge_sync::RwLock 适配（M7 写公平版）——
 struct ForgeRw(forge_sync::rwlock::RwLock<u64>);
 impl RwLockApi for ForgeRw {
-    type ReadGuard<'a> = forge_sync::rwlock::ReadGuard<'a, u64> where Self: 'a;
-    type WriteGuard<'a> = forge_sync::rwlock::WriteGuard<'a, u64> where Self: 'a;
-    fn new(v: u64) -> Self { ForgeRw(forge_sync::rwlock::RwLock::new(v)) }
-    fn read(&self) -> Self::ReadGuard<'_> { self.0.read() }
-    fn write(&self) -> Self::WriteGuard<'_> { self.0.write() }
+    type ReadGuard<'a>
+        = forge_sync::rwlock::ReadGuard<'a, u64>
+    where
+        Self: 'a;
+    type WriteGuard<'a>
+        = forge_sync::rwlock::WriteGuard<'a, u64>
+    where
+        Self: 'a;
+    fn new(v: u64) -> Self {
+        ForgeRw(forge_sync::rwlock::RwLock::new(v))
+    }
+    fn read(&self) -> Self::ReadGuard<'_> {
+        self.0.read()
+    }
+    fn write(&self) -> Self::WriteGuard<'_> {
+        self.0.write()
+    }
 }
 
 /// 在 READER_THREADS 个读者死循环 read 的压力下，写者完成 WRITER_OPS 次写。

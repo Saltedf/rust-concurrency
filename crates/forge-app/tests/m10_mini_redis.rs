@@ -193,7 +193,10 @@ fn resp_parser_handles_subscribe() {
     let raw = b"*2\r\n$9\r\nSUBSCRIBE\r\n$5\r\ntopic\r\n";
     let mut reader = &raw[..];
     let cmd = forge_app::mini_redis::read_command(&mut reader).unwrap();
-    assert_eq!(cmd, forge_app::mini_redis::Command::Subscribe("topic".into()));
+    assert_eq!(
+        cmd,
+        forge_app::mini_redis::Command::Subscribe("topic".into())
+    );
 }
 
 #[test]

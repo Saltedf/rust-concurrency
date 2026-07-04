@@ -15,8 +15,8 @@ pub mod reactor;
 pub mod task;
 
 // 教学用的"裸 oneshot"——forge-pool::oneshot 已经够用，重导出方便。
+pub use executor::{block_on, JoinHandle, Runtime};
 pub use forge_pool::oneshot;
-pub use executor::{block_on, Runtime, JoinHandle};
 pub use reactor::Reactor;
 
 use std::future::Future;
@@ -60,9 +60,10 @@ impl Future for Delay {
         // 还没到。注册（覆盖旧 registration）：让 reactor 在 deadline 时 wake 我们。
         // 每次 poll 都重新注册是因为 deadline 可能"被改"（虽然我们这版不支持），
         // 也是为了演示"future 和 reactor 通过 Waker 协作"的最小模式。
-        self.registration
-            .take(); // drop 旧的，反注册。
-        let reg = self.reactor.register_timer(self.deadline, cx.waker().clone());
+        self.registration.take(); // drop 旧的，反注册。
+        let reg = self
+            .reactor
+            .register_timer(self.deadline, cx.waker().clone());
         self.registration = Some(reg);
         Poll::Pending
     }

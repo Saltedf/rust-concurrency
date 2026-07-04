@@ -128,7 +128,11 @@ fn parse_args<I: Iterator<Item = String>>(mut it: I) -> Args {
         }
     }
 
-    Args { host, port, verbose }
+    Args {
+        host,
+        port,
+        verbose,
+    }
 }
 
 fn print_help() {

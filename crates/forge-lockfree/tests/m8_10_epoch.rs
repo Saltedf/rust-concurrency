@@ -1,7 +1,7 @@
 //! M8.10 —— Epoch-based reclamation：ABA 安全、批量回收、并发 pin/defer 不 UAF。
 use forge_lockfree::epoch::{self, EpochGuard, EpochStack};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::thread;
 
 #[test]
@@ -104,7 +104,11 @@ fn epoch_gc_waits_for_unpin() {
     // unpin 后 local_epoch=0：try_advance 看到 cur=1，所有 local 都是 UNPINNED → 推进到 2，
     // 同时回收 garbage[(1-1)%3] = garbage[0]——正是我们刚 defer 的那个。
     epoch::try_advance();
-    assert_eq!(DESTROYED.load(Ordering::SeqCst), 1, "unpin 后一次 try_advance 即可回收");
+    assert_eq!(
+        DESTROYED.load(Ordering::SeqCst),
+        1,
+        "unpin 后一次 try_advance 即可回收"
+    );
 }
 
 /// 嵌套 pin/unpin 不会过早 unpin。

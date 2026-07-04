@@ -1,7 +1,7 @@
 //! M8.09 —— Hazard pointer 回收：ABA 安全的 Treiber 栈、不泄漏、并发 push/pop。
 use forge_lockfree::hazard::{self, HazardStack};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::thread;
 
 #[test]

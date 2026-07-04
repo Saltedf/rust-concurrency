@@ -73,7 +73,9 @@ impl<Y> YieldSlot<Y> {
 
     /// clone 出一个新句柄——future 持一份，Gen 持一份。
     fn clone_handle(&self) -> Self {
-        Self { inner: self.inner.clone() }
+        Self {
+            inner: self.inner.clone(),
+        }
     }
 }
 

@@ -45,7 +45,12 @@ fn clh_strict_mutual_exclusion() {
                     // 更新 max。
                     let mut m = max_c.load(Ordering::Relaxed);
                     while cur > m {
-                        match max_c.compare_exchange_weak(m, cur, Ordering::SeqCst, Ordering::Relaxed) {
+                        match max_c.compare_exchange_weak(
+                            m,
+                            cur,
+                            Ordering::SeqCst,
+                            Ordering::Relaxed,
+                        ) {
                             Ok(_) => break,
                             Err(v) => m = v,
                         }
@@ -58,7 +63,11 @@ fn clh_strict_mutual_exclusion() {
         }
     });
 
-    assert_eq!(max_concurrent.load(Ordering::Relaxed), 1, "CLH 必须保证强互斥");
+    assert_eq!(
+        max_concurrent.load(Ordering::Relaxed),
+        1,
+        "CLH 必须保证强互斥"
+    );
 }
 
 /// 公平性：用每线程获锁次数检查"无饿死"。
@@ -87,11 +96,6 @@ fn clh_no_starvation() {
 
     // 每个线程都恰好完成 PER_THREAD 次获锁——CLH 不应让任何线程饿死。
     for (tid, c) in per_thread_counts.iter().enumerate() {
-        assert_eq!(
-            c.load(Ordering::Relaxed),
-            PER_THREAD,
-            "线程 {} 被饿死",
-            tid
-        );
+        assert_eq!(c.load(Ordering::Relaxed), PER_THREAD, "线程 {} 被饿死", tid);
     }
 }

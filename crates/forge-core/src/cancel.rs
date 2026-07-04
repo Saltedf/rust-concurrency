@@ -197,10 +197,7 @@ impl std::future::Future for Cancelled {
                     // 简化起见，我们用"替换 + 去重"：如果末尾已经是同一个 waker，跳过。
                     // 严格相等比较 waker 较贵，但 poll 频率有限，可接受。
                     let new_waker = cx.waker();
-                    let dup = list
-                        .back()
-                        .map(|w| w.will_wake(new_waker))
-                        .unwrap_or(false);
+                    let dup = list.back().map(|w| w.will_wake(new_waker)).unwrap_or(false);
                     if !dup {
                         list.push_back(new_waker.clone());
                     }

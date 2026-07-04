@@ -7,7 +7,7 @@
 //! 3. **自适应自旋**：抢锁失败先自旋 ≤100 次（持锁者很可能在别核上、马上就放），
 //!    再退化到 wait。是否划算"取决于"——但 std 在 Linux 上也用 100。
 
-use crate::atomic_wait::{wake_one, wait};
+use crate::atomic_wait::{wait, wake_one};
 use std::cell::UnsafeCell;
 use std::hint::spin_loop;
 use std::ops::{Deref, DerefMut};

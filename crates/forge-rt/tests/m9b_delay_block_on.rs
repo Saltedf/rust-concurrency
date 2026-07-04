@@ -84,5 +84,8 @@ fn block_on_handles_multiple_inner_spawns_via_state_machine() {
         &reactor,
     );
     assert_eq!(out, "two_delays");
-    assert!(flag.load(Ordering::SeqCst), "first delay should have completed before second");
+    assert!(
+        flag.load(Ordering::SeqCst),
+        "first delay should have completed before second"
+    );
 }

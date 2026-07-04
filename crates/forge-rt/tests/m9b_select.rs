@@ -43,8 +43,16 @@ fn select_returns_first_ready_and_drops_loser() {
     let ready_a = Arc::new(AtomicBool::new(false));
     let ready_b = Arc::new(AtomicBool::new(false));
 
-    let a = Manual { ready: ready_a.clone(), value: 1u32, drop_counter: drops_a.clone() };
-    let b = Manual { ready: ready_b.clone(), value: 2u32, drop_counter: drops_b.clone() };
+    let a = Manual {
+        ready: ready_a.clone(),
+        value: 1u32,
+        drop_counter: drops_a.clone(),
+    };
+    let b = Manual {
+        ready: ready_b.clone(),
+        value: 2u32,
+        drop_counter: drops_b.clone(),
+    };
 
     // 在一个独立线程里跑 select：让 A 先 Ready。
     // 这需要 select 是阻塞的——它确实是（轮询 + yield_now）。
@@ -61,9 +69,16 @@ fn select_returns_first_ready_and_drops_loser() {
             // A 没被 drop（它正常完成、被消费）；B 还在 _loser_b 里。
             // drops_b 在这里还没自增——我们手动 drop 验证。
             let b_drops_before = drops_b.load(Ordering::Relaxed);
-            assert_eq!(b_drops_before, 0, "loser still alive until explicitly dropped");
+            assert_eq!(
+                b_drops_before, 0,
+                "loser still alive until explicitly dropped"
+            );
             drop(_loser_b);
-            assert_eq!(drops_b.load(Ordering::Relaxed), 1, "loser dropped after explicit drop");
+            assert_eq!(
+                drops_b.load(Ordering::Relaxed),
+                1,
+                "loser dropped after explicit drop"
+            );
         }
         SelectOutput::Right(_, _) => panic!("A should win"),
     }

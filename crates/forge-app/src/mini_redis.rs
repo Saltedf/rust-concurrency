@@ -53,7 +53,9 @@ pub struct RespError(pub String);
 pub fn read_command(reader: &mut impl BufRead) -> Result<Command, RespError> {
     // 读第一行：应当形如 `*2\r\n`
     let mut header = String::new();
-    reader.read_line(&mut header).map_err(|e| RespError(e.to_string()))?;
+    reader
+        .read_line(&mut header)
+        .map_err(|e| RespError(e.to_string()))?;
     let header = header.trim_end_matches(|c| c == '\r' || c == '\n');
     let count = header
         .strip_prefix('*')
@@ -65,7 +67,9 @@ pub fn read_command(reader: &mut impl BufRead) -> Result<Command, RespError> {
     let mut args: Vec<String> = Vec::with_capacity(count);
     for _ in 0..count {
         let mut len_line = String::new();
-        reader.read_line(&mut len_line).map_err(|e| RespError(e.to_string()))?;
+        reader
+            .read_line(&mut len_line)
+            .map_err(|e| RespError(e.to_string()))?;
         let len_line = len_line.trim_end_matches(|c| c == '\r' || c == '\n');
         let len = len_line
             .strip_prefix('$')
@@ -73,10 +77,14 @@ pub fn read_command(reader: &mut impl BufRead) -> Result<Command, RespError> {
             .parse::<usize>()
             .map_err(|_| RespError(format!("bad bulk len: {len_line}")))?;
         let mut buf = vec![0u8; len];
-        reader.read_exact(&mut buf).map_err(|e| RespError(e.to_string()))?;
+        reader
+            .read_exact(&mut buf)
+            .map_err(|e| RespError(e.to_string()))?;
         // 吃掉结尾的 \r\n
         let mut crlf = [0u8; 2];
-        reader.read_exact(&mut crlf).map_err(|e| RespError(e.to_string()))?;
+        reader
+            .read_exact(&mut crlf)
+            .map_err(|e| RespError(e.to_string()))?;
         args.push(String::from_utf8(buf).map_err(|e| RespError(e.to_string()))?);
     }
 

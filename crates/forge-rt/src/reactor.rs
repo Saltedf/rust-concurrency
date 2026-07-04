@@ -61,7 +61,13 @@ impl ReactorInner {
     fn register_timer(&self, id: u64, deadline: Instant, waker: Waker) {
         {
             let mut slots = self.slots.lock().unwrap();
-            slots.insert(id, Slot { waker: Some(waker), deadline });
+            slots.insert(
+                id,
+                Slot {
+                    waker: Some(waker),
+                    deadline,
+                },
+            );
         }
         self.timers
             .lock()
@@ -97,10 +103,7 @@ impl ReactorInner {
         let mut timers = self.timers.lock().unwrap();
 
         // 把所有 deadline <= now 的桶全部取出来。
-        let expired_keys: Vec<Instant> = timers
-            .range(..=now)
-            .map(|(k, _)| *k)
-            .collect();
+        let expired_keys: Vec<Instant> = timers.range(..=now).map(|(k, _)| *k).collect();
         for k in expired_keys {
             if let Some(ids) = timers.remove(&k) {
                 for id in ids {
@@ -128,7 +131,12 @@ pub struct TimerRegistration {
 }
 
 impl TimerRegistration {
-    pub(crate) fn new(reactor: Arc<ReactorInner>, id: u64, deadline: Instant, waker: Waker) -> Self {
+    pub(crate) fn new(
+        reactor: Arc<ReactorInner>,
+        id: u64,
+        deadline: Instant,
+        waker: Waker,
+    ) -> Self {
         reactor.register_timer(id, deadline, waker);
         Self { id, reactor }
     }
@@ -188,7 +196,11 @@ fn reactor_thread(inner: Arc<ReactorInner>, mut poll: Poll) {
         // 1) 算 timeout：下一个 deadline 距 now 多久。
         let timeout: Option<Duration> = inner.next_deadline().map(|dl| {
             let now = Instant::now();
-            if dl <= now { Duration::ZERO } else { dl - now }
+            if dl <= now {
+                Duration::ZERO
+            } else {
+                dl - now
+            }
         });
 
         // 2) 等：要么 timeout，要么被外部 wake_poll 打断。

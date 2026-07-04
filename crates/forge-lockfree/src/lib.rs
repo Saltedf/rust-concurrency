@@ -14,19 +14,19 @@
 //! - [`deque`]：Chase-Lev 工作窃取双端队列（调度器的心脏）
 //! - [`latch`]：倒计数门闩（Latch）+ 可重用屏障（Barrier）（模块 **M8h**）
 
-pub mod latch;
-pub mod semaphore;
-pub mod rcu;
-pub mod stack;
-pub mod mcs;
-pub mod parking_lot;
-pub mod seqlock;
-pub mod deque;
-/// Michael-Scott MPMC 无锁 FIFO。见 docs/modules/M8-lockfree.md M8c 节末。
-pub mod queue;
-/// Hazard pointer 回收（公告栏 + SeqCst fence）。M8c 章节配 stack.rs 的 ABA 解法 3。
-pub mod hazard;
-/// Epoch-based reclamation（两 epoch 窗口批量回收）。M8b ISO·ZOOM 节的真实代码版。
-pub mod epoch;
 /// CLH 队列锁，与 MCS 对照（spin 在前驱节点上）。M8d 章节末尾。
 pub mod clh;
+pub mod deque;
+/// Epoch-based reclamation（两 epoch 窗口批量回收）。M8b ISO·ZOOM 节的真实代码版。
+pub mod epoch;
+/// Hazard pointer 回收（公告栏 + SeqCst fence）。M8c 章节配 stack.rs 的 ABA 解法 3。
+pub mod hazard;
+pub mod latch;
+pub mod mcs;
+pub mod parking_lot;
+/// Michael-Scott MPMC 无锁 FIFO。见 docs/modules/M8-lockfree.md M8c 节末。
+pub mod queue;
+pub mod rcu;
+pub mod semaphore;
+pub mod seqlock;
+pub mod stack;

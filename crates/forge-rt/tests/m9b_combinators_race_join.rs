@@ -10,9 +10,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
-use forge_rt::combinators::{
-    join, race, RaceOutput, Ready,
-};
+use forge_rt::combinators::{join, race, RaceOutput, Ready};
 use forge_rt::noop_waker;
 
 /// "手动就绪" future:外部 flip 一下 AtomicBool,下次 poll 返回 Ready(v)。
@@ -40,10 +38,12 @@ impl<T: Clone + Unpin + Send + 'static> Future for Manual<T> {
     }
 }
 
-fn make_manual<T: Clone + Unpin + Send + 'static>(value: T) -> (
+fn make_manual<T: Clone + Unpin + Send + 'static>(
+    value: T,
+) -> (
     Manual<T>,
-    Arc<AtomicBool>,           // ready flag
-    Arc<AtomicUsize>,          // poll counter
+    Arc<AtomicBool>,  // ready flag
+    Arc<AtomicUsize>, // poll counter
     Arc<std::sync::Mutex<Option<std::task::Waker>>>,
 ) {
     let ready = Arc::new(AtomicBool::new(false));

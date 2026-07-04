@@ -11,7 +11,7 @@ pub mod mini_redis;
 
 // —— M10 三个补缺子应用 ——
 // event_bus / actor 跨平台；bare_server 只在 Linux 上编译（epoll 专属）。
-pub mod event_bus;
 pub mod actor;
 #[cfg(target_os = "linux")]
 pub mod bare_server;
+pub mod event_bus;

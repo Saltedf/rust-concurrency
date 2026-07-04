@@ -8,7 +8,7 @@
 //! 3. **写公平（防写饥饿）**：把 state 编码为"读者数×2，+1 表示有写者在等"。
 //!    于是**奇数 state 时新读者必须等**，写者终能拿到锁。`u32::MAX`（奇）仍表写锁。
 
-use crate::atomic_wait::{wake_all, wake_one, wait};
+use crate::atomic_wait::{wait, wake_all, wake_one};
 use std::cell::UnsafeCell;
 use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -40,7 +40,12 @@ impl<T> RwLock<T> {
             if s % 2 == 0 {
                 // 偶数：可读。+2 占一个读锁。
                 assert!(s != u32::MAX - 2, "too many readers");
-                match self.state.compare_exchange_weak(s, s + 2, Ordering::Acquire, Ordering::Relaxed) {
+                match self.state.compare_exchange_weak(
+                    s,
+                    s + 2,
+                    Ordering::Acquire,
+                    Ordering::Relaxed,
+                ) {
                     Ok(_) => return ReadGuard { rwlock: self },
                     Err(e) => s = e,
                 }
@@ -58,7 +63,10 @@ impl<T> RwLock<T> {
         loop {
             // 未锁（0 或 1）→ 抢写锁。
             if s <= 1 {
-                match self.state.compare_exchange(s, u32::MAX, Ordering::Acquire, Ordering::Relaxed) {
+                match self
+                    .state
+                    .compare_exchange(s, u32::MAX, Ordering::Acquire, Ordering::Relaxed)
+                {
                     Ok(_) => return WriteGuard { rwlock: self },
                     Err(e) => {
                         s = e;
@@ -68,7 +76,10 @@ impl<T> RwLock<T> {
             }
             // 把 state 拨成奇数（+1），挡住新读者，防写饥饿。
             if s % 2 == 0 {
-                match self.state.compare_exchange(s, s + 1, Ordering::Relaxed, Ordering::Relaxed) {
+                match self
+                    .state
+                    .compare_exchange(s, s + 1, Ordering::Relaxed, Ordering::Relaxed)
+                {
                     Ok(_) => {}
                     Err(e) => {
                         s = e;
@@ -116,7 +127,9 @@ impl<T> Drop for ReadGuard<'_, T> {
     fn drop(&mut self) {
         // 读者数 -2。若从 3 减到 1：最后一个读者 + 有写者在等 → 唤醒一个写者。
         if self.rwlock.state.fetch_sub(2, Ordering::Release) == 3 {
-            self.rwlock.writer_wake_counter.fetch_add(1, Ordering::Release);
+            self.rwlock
+                .writer_wake_counter
+                .fetch_add(1, Ordering::Release);
             wake_one(&self.rwlock.writer_wake_counter);
         }
     }
@@ -125,7 +138,9 @@ impl<T> Drop for ReadGuard<'_, T> {
 impl<T> Drop for WriteGuard<'_, T> {
     fn drop(&mut self) {
         self.rwlock.state.store(0, Ordering::Release);
-        self.rwlock.writer_wake_counter.fetch_add(1, Ordering::Release);
+        self.rwlock
+            .writer_wake_counter
+            .fetch_add(1, Ordering::Release);
         wake_one(&self.rwlock.writer_wake_counter); // 可能的等待写者
         wake_all(&self.rwlock.state); // 所有等待读者
     }

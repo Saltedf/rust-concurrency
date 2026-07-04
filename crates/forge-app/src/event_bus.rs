@@ -256,7 +256,11 @@ impl<T: Clone + Send + 'static> TopicBus<T> {
 
     /// 某 topic 当前订阅者数。
     pub fn subscriber_count(&self, topic: &str) -> usize {
-        self.topics.lock().get(topic).map(|b| b.subscriber_count()).unwrap_or(0)
+        self.topics
+            .lock()
+            .get(topic)
+            .map(|b| b.subscriber_count())
+            .unwrap_or(0)
     }
 }
 

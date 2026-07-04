@@ -19,7 +19,10 @@ struct ConcurrencyCountingFetcher {
 impl ConcurrencyCountingFetcher {
     fn new(pages: &[(&str, &str)]) -> Self {
         Self {
-            pages: pages.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+            pages: pages
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
             in_flight: StdMutex::new(HashMap::new()),
             peak: StdMutex::new(HashMap::new()),
             fetch_calls: AtomicUsize::new(0),
@@ -94,17 +97,17 @@ fn per_domain_limiter_caps_concurrency() {
     let peak = observer.peak.lock().unwrap();
     let a_peak = peak.get("a.test").copied().unwrap_or(0);
     // 允许 2，绝不允许 3
-    assert!(
-        a_peak <= 2,
-        "per-domain 并发被破坏了：peak = {a_peak}"
-    );
+    assert!(a_peak <= 2, "per-domain 并发被破坏了：peak = {a_peak}");
     assert!(a_peak >= 1);
 }
 
 #[test]
 fn crawler_visits_all_unique_urls() {
     let owned: Vec<(String, String)> = vec![
-        ("https://seed.test/".into(), "<a href=\"https://a.test/1\">1</a><a href=\"https://b.test/2\">2</a>".into()),
+        (
+            "https://seed.test/".into(),
+            "<a href=\"https://a.test/1\">1</a><a href=\"https://b.test/2\">2</a>".into(),
+        ),
         ("https://a.test/1".into(), "leaf-a".into()),
         ("https://b.test/2".into(), "leaf-b".into()),
     ];
@@ -128,7 +131,10 @@ struct MockFetcherStatic {
 impl MockFetcherStatic {
     fn new(pages: Vec<(&str, &str)>) -> Self {
         Self {
-            pages: pages.into_iter().map(|(k, v)| (k.into(), v.into())).collect(),
+            pages: pages
+                .into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect(),
         }
     }
 }
@@ -136,7 +142,10 @@ impl Fetcher for MockFetcherStatic {
     fn fetch(&self, url: &str) -> Result<Page, String> {
         self.pages
             .get(url)
-            .map(|b| Page { url: url.into(), body: b.clone() })
+            .map(|b| Page {
+                url: url.into(),
+                body: b.clone(),
+            })
             .ok_or_else(|| format!("miss {url}"))
     }
 }

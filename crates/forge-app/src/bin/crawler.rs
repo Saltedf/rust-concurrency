@@ -14,9 +14,9 @@
 //! 那是 lib 的可注入入口，集成测试用它注入 MockFetcher 跑完整路径，
 //! 不用真的联网。
 
-use forge_app::crawler::{CliArgs, Fetcher, Page};
 #[cfg(feature = "real-fetch")]
 use forge_app::crawler::run_with_fetcher;
+use forge_app::crawler::{CliArgs, Fetcher, Page};
 use std::collections::HashMap;
 #[cfg(feature = "real-fetch")]
 use std::time::Duration;
@@ -170,7 +170,10 @@ struct MockFetcher {
 impl MockFetcher {
     fn new(pages: &[(&str, &str)]) -> Self {
         Self {
-            pages: pages.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+            pages: pages
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
         }
     }
 }

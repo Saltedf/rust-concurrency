@@ -24,6 +24,9 @@ fn background_loop_stops_when_flagged() {
     flag.stop();
     handle.join().unwrap();
 
-    assert!(ticks.load(Ordering::Relaxed) > 0, "后台线程应当已经跑过若干轮");
+    assert!(
+        ticks.load(Ordering::Relaxed) > 0,
+        "后台线程应当已经跑过若干轮"
+    );
     assert!(flag.is_stopped());
 }
