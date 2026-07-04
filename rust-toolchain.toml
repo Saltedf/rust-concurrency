@@ -1,0 +1,5 @@
+# 本课程需要 nightly：loom（并发模型检查）与 miri（未定义行为检查）都是 nightly-only。
+[toolchain]
+channel = "nightly"
+components = ["rust-src", "miri"]
+profile = "default"

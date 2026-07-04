@@ -1,0 +1,54 @@
+[package]
+name = "forge-app"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+# M10 实际用到的自研原语：
+forge-core = { path = "../forge-core" }
+forge-sync = { path = "../forge-sync" }       # Mutex（KV / 去重集）
+forge-channel = { path = "../forge-channel" } # mpsc（结果汇聚 / pub-sub）
+forge-lockfree = { path = "../forge-lockfree" }# Semaphore（按域名限速）
+# 注：M9a 的 forge-pool 与 M9b 的 forge-rt 在 M10 的练习里会被换进来；
+# 这里作为本模块的默认依赖保留为可选，避免被 WIP 子模块拖累构建。
+# 想在生产里用线程池跑爬虫/把 mini-Redis 搬到异步上时打开：
+forge-pool = { path = "../forge-pool", optional = true }
+forge-rt = { path = "../forge-rt", optional = true }
+
+# 生产用 HTTP 客户端（教学版默认不联网；用 feature 开启）
+ureq = { version = "2", optional = true }
+
+# —— M10 子应用 bare_server：在 Linux 上直接调 epoll syscall ——
+# 用 target-specific 依赖：非 Linux 平台根本不会拉这个 crate，避免
+# 在 macOS / Windows 上无谓编译 libc。
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+
+[features]
+default = []
+# 启用真正的 ureq fetcher（教程里讲到、但默认不联网络）
+real-fetch = ["dep:ureq"]
+# 启用基于自研线程池 / 异步运行时的版本（练习用）
+runtime = ["dep:forge-pool", "dep:forge-rt"]
+
+[[bin]]
+name = "crawler"
+path = "src/bin/crawler.rs"
+
+[[bin]]
+name = "mini-redis"
+path = "src/bin/mini_redis.rs"
+
+# echo-server 只在 Linux 上注册——bare_server.rs 整模块在非 Linux 上为空，
+# 非注册 bin 让 macOS / Windows 上 cargo 不去找这个文件。注意 cargo 不支持
+# target-gated [[bin]]，所以 echo-server.rs 在文件内自己 cfg(target_os) 门控；
+# 非 Linux 平台编译出空 main——为了保证非 Linux 也有 main，我们在文件内
+# 用 cfg 把整个 main 关掉、并提供一个非 Linux 的占位 main。
+[[bin]]
+name = "echo-server"
+path = "src/bin/echo_server.rs"
+
+[dev-dependencies]

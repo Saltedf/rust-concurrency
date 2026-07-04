@@ -1,0 +1,47 @@
+# Forge —— 一个 Cargo workspace，自底向上长出来的真实并发工具链 + 运行时。
+# 各 crate 之间的依赖严格遵循自底向上的 DAG（见 docs/README.md 的"依赖链"）。
+[workspace]
+resolver = "2"
+members = [
+    "crates/forge-core",      # M1/M3/M4: 原子、自旋锁、Arc
+    "crates/forge-sync",      # M2/M6/M7: std 锁、atomic-wait、futex 真锁
+    "crates/forge-channel",   # M5: oneshot / mpsc 通道
+    "crates/forge-lockfree",  # M8: 信号量/RCU/无锁栈队列/MCS/parking-lot/SeqLock/Chase-Lev
+    "crates/forge-pool",      # M9a: 同步工作窃取线程池（顶峰#1）
+    "crates/forge-rt",        # M9b: 异步执行器 + mio Reactor（顶峰#2）
+    "crates/forge-app",       # M10: 并发网页爬虫 + mini-Redis
+]
+
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+authors = ["Forge 教程"]
+
+# 共享依赖（在各 crate 的 Cargo.toml 里用 `dep.workspace = true` 引用）
+[workspace.dependencies]
+# —— 并发模型检查器：让"只在 ARM 上才暴露的内存序 bug"在 x86 上也能复现 ——
+loom = "0.7"
+# —— 基准测试 ——
+criterion = { version = "0.5", features = ["html_reports"] }
+# —— futex 抽象（M6 会先手写 Linux futex syscall，再允许依赖此 crate 对照）——
+atomic-wait = "1"
+# —— 对照参考：真实的开源实现，教程里会用它验证"我们写的就是这个样子" ——
+crossbeam-deque = "0.8"
+crossbeam-utils = { version = "0.8", features = ["std"] }
+crossbeam-epoch = "0.9"
+# —— 异步 I/O Reactor（M9b）——
+mio = { version = "0.8", features = ["os-poll", "net"] }
+# —— HTTP 客户端/服务端（M10 应用）——
+# 注意：这些仅是"应用层"依赖，绝不用于实现运行时本身。
+
+[profile.release]
+debug = true   # 保留符号，方便 perf / 调试并发 bug
+
+[profile.bench]
+debug = true
+
+# 告诉 rustc：cfg(loom) 和 cfg(miri) 是我们故意用的条件编译门控
+#（loom 测试 + miri UB 检查），不是拼错。消除 unexpected_cfgs 警告。
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(loom)', 'cfg(miri)'] }

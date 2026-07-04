@@ -1,0 +1,29 @@
+[package]
+name = "forge-core"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+
+[dev-dependencies]
+loom = { workspace = true }
+criterion = { workspace = true }
+
+[[bench]]
+name = "m1_false_sharing"
+harness = false
+
+[[bench]]
+name = "m3_spin_vs_std"
+harness = false
+
+[[test]]
+name = "m1_06_relaxed_bug"
+path = "tests/loom/m1_06_relaxed_bug.rs"
+
+[[test]]
+name = "m3_04_spin_ordering"
+path = "tests/loom/m3_04_spin_ordering.rs"

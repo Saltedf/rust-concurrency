@@ -1,0 +1,26 @@
+[package]
+name = "forge-lockfree"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+forge-core = { path = "../forge-core" }
+forge-sync = { path = "../forge-sync" }
+atomic-wait = { workspace = true }
+
+[dev-dependencies]
+# loom：在 cfg(loom) 下提供可被模型检查的原子类型，覆盖 x86 上抓不到的弱内存交错。
+loom = { workspace = true }
+
+# loom 模型测试放在 tests/loom/ 子目录下；显式声明为独立 test target，
+# 让 `cargo test --test m8_03_aba` 能找到它们。这些测试只在 cfg(loom) 下编译。
+[[test]]
+name = "m8_03_aba"
+path = "tests/loom/m8_03_aba.rs"
+
+[[test]]
+name = "m8_08_chaselev"
+path = "tests/loom/m8_08_chaselev.rs"

@@ -1,0 +1,20 @@
+[package]
+name = "forge-rt"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+forge-core = { path = "../forge-core" }
+forge-sync = { path = "../forge-sync" }
+forge-channel = { path = "../forge-channel" }
+forge-lockfree = { path = "../forge-lockfree" }
+forge-pool = { path = "../forge-pool" }
+# —— 异步 I/O Reactor 的载体：把 epoll/kqueue/IOCP 抽象成统一 API ——
+mio = { workspace = true }
+# —— 标准库自带的 Future/Poll/Context/Waker 我们直接复用（不重发明轮子） ——
+# 教程会从零讲清这几个 trait 的语义，但实现 std::future 已经稳定，重写没教学价值。
+
+[dev-dependencies]

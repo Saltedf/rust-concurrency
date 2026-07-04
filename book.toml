@@ -1,0 +1,13 @@
+[book]
+title = "Forge — 从零构建真实 Rust 并发运行时"
+authors = ["Forge 教程"]
+language = "zh"
+src = "docs"
+
+[output.html]
+default-theme = "light"
+no-section-label = false
+
+[output.html.search]
+limit-results = 30
+use-boolean-and = true

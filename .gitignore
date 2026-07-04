@@ -1,0 +1,24 @@
+
+logs/
+books/
+# 解包后的 epub 原始 HTML/图片体积大，不纳入版本控制；只保留转换后的纯文本。
+books/*/extract/
+books/*/text/
+books/*/*.epub
+
+# Rust 构建产物
+/target
+**/*.rs.bk
+Cargo.lock
+
+# 基准测试报告
+/target/criterion/
+
+# mdBook 构建产物
+/book/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+.DS_Store
